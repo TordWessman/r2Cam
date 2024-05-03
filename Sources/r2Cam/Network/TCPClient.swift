@@ -26,21 +26,13 @@ class TCPClient: NetworkClient {
 
             switch newState {
             case .ready:
-                print("Connected to server")
                 self.receiveData()
             case .failed(let error):
-                print("Connection failed: \(error)")
                 self.delegate?.networkClient(received: error)
-            case .cancelled:
-                print("Connection cancelled")
-            case .preparing:
-                print("Connection is preparing")
-            case .setup:
-                print("Connection setup")
             case .waiting(let error):
-                print("Connection waiting: \(error)")
-            @unknown default:
-                print("Got weird state: \(newState)")
+                self.delegate?.networkClient(received: error)
+            default:
+                break
             }
         }
     }
@@ -58,7 +50,6 @@ class TCPClient: NetworkClient {
             guard let self else { return }
             self.connection.send(content: data, completion: .contentProcessed { error in
                 if let error = error {
-                    print("Error sending data: \(error)")
                     return continuation.resume(throwing: error)
                 }
                 continuation.resume()
@@ -73,7 +64,6 @@ class TCPClient: NetworkClient {
             if let data = data {
                 self.delegate?.networkClient(received: [UInt8](data))
             } else if let error = error {
-                print("Error receiving data: \(error)")
                 self.delegate?.networkClient(received: error)
             }
             self.receiveData()
