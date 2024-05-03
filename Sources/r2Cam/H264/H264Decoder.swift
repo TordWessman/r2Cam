@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  H264Decoder.swift
 //  
 //
 //  Created by Tord Wessman on 2024-05-03.
@@ -11,12 +11,10 @@ import VideoToolbox
 import Photos
 
 protocol H264Decodable {
-
     func decode(_ nal: [UInt8]) throws
     func process(_ nal: [UInt8]) throws
     var displayLayer: AVSampleBufferDisplayLayer? { get set }
     var running: Bool { get set }
-
 }
 
 protocol H264DecoderDelegate: AnyObject {

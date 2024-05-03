@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  JPEGDecoder.swift
 //  
 //
 //  Created by Tord Wessman on 2024-05-02.
@@ -8,8 +8,11 @@
 import CoreMedia
 import UIKit
 
-protocol JPEGDecoderDelegate: AnyObject {
+protocol FrameDecoder {
+    func decode(frame: [UInt8]) throws -> CMSampleBuffer?
+}
 
+protocol JPEGDecoderDelegate: AnyObject {
     func jpegDecoder(detected mediaSize: CGSize)
 }
 

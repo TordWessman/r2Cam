@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  NetworkClient.swift
 //  
 //
 //  Created by Tord Wessman on 2024-05-03.
