@@ -8,6 +8,5 @@
 import CoreMedia
 
 protocol FrameDecoder {
-
     func decode(frame: [UInt8]) throws -> CMSampleBuffer?
 }

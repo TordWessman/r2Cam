@@ -8,8 +8,6 @@
 import Foundation
 
 protocol FrameParser {
-
     func addBuffer(_ rawData: [UInt8]) throws
-
     func parse() throws -> [UInt8]?
 }

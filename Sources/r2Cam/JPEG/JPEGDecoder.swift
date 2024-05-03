@@ -8,6 +8,11 @@
 import CoreMedia
 import UIKit
 
+protocol JPEGDecoderDelegate: AnyObject {
+
+    func jpegDecoder(detected mediaSize: CGSize)
+}
+
 class JPEGDecoder: FrameDecoder {
 
     enum Error: Swift.Error {
@@ -19,10 +24,19 @@ class JPEGDecoder: FrameDecoder {
 
     var defaultTimeScale: Int32 = 60
 
+    private(set) var size: CGSize?
+
+    weak var delegate: JPEGDecoderDelegate?
+
     func decode(frame: [UInt8]) throws -> CMSampleBuffer? {
 
         guard let image = UIImage(data: Data(frame)) else {
             throw Error.failedToCreateImageFromData(dataSize: frame.count)
+        }
+
+        if size != image.size {
+            size = image.size
+            delegate?.jpegDecoder(detected: image.size)
         }
 
         guard let pixelBuffer = image.pixelBuffer else {

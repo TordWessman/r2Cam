@@ -21,6 +21,7 @@ protocol H264Decodable {
 
 protocol H264DecoderDelegate: AnyObject {
     func h264Decoder(emitted sampleBuffer: CMSampleBuffer)
+    func h264Decoder(detected mediaSize: CGSize)
 }
 
 class H264Decoder: NSObject, H264Decodable {
@@ -31,6 +32,9 @@ class H264Decoder: NSObject, H264Decodable {
     private var sps: [UInt8]?
     private var pps: [UInt8]?
     private var queue: OperationQueue
+
+    private var width: Int32?
+    private var height: Int32?
 
     var running: Bool = true
     weak var displayLayer: AVSampleBufferDisplayLayer?
@@ -56,7 +60,7 @@ class H264Decoder: NSObject, H264Decodable {
         formatDescription = nil
     }
 
-    private func create() throws {
+    private func detectFormatDescription() throws {
 
         guard let sps, let pps else {
             throw Error.spsAndppsNotSet
@@ -85,17 +89,20 @@ class H264Decoder: NSObject, H264Decodable {
                 }
             }
         }
-//        let dimensions = CMVideoFormatDescriptionGetDimensions(formatDescription!)
-//
-//        // create the decoder parameters
-//        let decoderParameters = NSMutableDictionary()
-//        let destinationPixelBufferAttributes = NSMutableDictionary()
-//        destinationPixelBufferAttributes.setValue(NSNumber(value: kCVPixelFormatType_32BGRA), forKey: kCVPixelBufferPixelFormatTypeKey as String)
-    }
+
+        if let formatDescription {
+            let dimensions = CMVideoFormatDescriptionGetDimensions(formatDescription)
+            if width != dimensions.width || height != dimensions.height {
+                width = dimensions.width
+                height = dimensions.height
+                delegate?.h264Decoder(detected: CGSize(width: Double(dimensions.width), height: Double(dimensions.height)))
+            }
+        }
+   }
+
     public func process(_ nal: [UInt8]) throws
     {
         var nal = nal
-        // replace the start code with the NAL size
         let len = nal.count - 4
         var lenBig = CFSwapInt32HostToBig(UInt32(len))
         memcpy(&nal, &lenBig, 4)
@@ -113,7 +120,7 @@ class H264Decoder: NSObject, H264Decodable {
             sps = Array(fullsps![4...])
             pps = Array(fullpps![4...])
 
-            try create()
+            try detectFormatDescription()
             sps = nil
             pps = nil
 

@@ -9,13 +9,13 @@ import Foundation
 import Network
 
 @available(iOS 13.0, macOS 10.15, *)
-public class TCPClient: NetworkClient {
+class TCPClient: NetworkClient {
 
     private let networkQueue: DispatchQueue
     private let connection: NWConnection
-    public weak var delegate: NetworkClientDelegate?
+    weak var delegate: NetworkClientDelegate?
 
-    public init(host: String, port: UInt16, networkQueue: DispatchQueue = DispatchQueue.global()) {
+    init(host: String, port: UInt16, networkQueue: DispatchQueue = DispatchQueue.global()) {
         let host = NWEndpoint.Host(host)
         let port = NWEndpoint.Port(integerLiteral: port)
         self.connection = NWConnection(host: host, port: port, using: .tcp)
@@ -45,15 +45,15 @@ public class TCPClient: NetworkClient {
         }
     }
 
-    public func start() {
+    func start() {
         connection.start(queue: networkQueue)
     }
 
-    public func stop() {
+    func stop() {
         connection.cancel()
     }
 
-    public func send(_ data: Data) async throws {
+    func send(_ data: Data) async throws {
         return try await withCheckedThrowingContinuation { [weak self] continuation in
             guard let self else { return }
             self.connection.send(content: data, completion: .contentProcessed { error in

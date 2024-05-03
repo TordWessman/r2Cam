@@ -8,13 +8,15 @@
 import Foundation
 import AVFoundation
 
-public class H264VideoConnection: H264DecoderDelegate, NetworkClientDelegate, VideoConnection {
+public class H264VideoConnection: VideoConnection, H264DecoderDelegate, NetworkClientDelegate {
 
     private let operationQueue = OperationQueue()
-    //let parser = H264Parser(decoder: <#T##H264Decoder#>)
     private let parser: H264Parser
     private var decoder: H264Decodable
     private let client: NetworkClient
+
+    private(set) public var mediaSize: CGSize?
+
     public weak var delegate: VideoConnectionDelegate?
     public weak var displayLayer: AVSampleBufferDisplayLayer? {
         didSet {
@@ -36,6 +38,11 @@ public class H264VideoConnection: H264DecoderDelegate, NetworkClientDelegate, Vi
         delegate?.videoConnection(received: sampleBuffer)
     }
 
+    func h264Decoder(detected mediaSize: CGSize) {
+        self.mediaSize = mediaSize
+        delegate?.videoConnection(detected: mediaSize)
+    }
+
     public func networkClient(received data: [UInt8]) {
         operationQueue.addOperation { [weak self] in
             guard let self else { return }
@@ -49,10 +56,12 @@ public class H264VideoConnection: H264DecoderDelegate, NetworkClientDelegate, Vi
     }
 
     public func start() throws {
+        parser.running = true
         try client.start()
     }
 
     public func stop() {
+        parser.running = false
         client.stop()
     }
 }

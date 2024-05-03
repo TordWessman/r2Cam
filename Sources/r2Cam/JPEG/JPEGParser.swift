@@ -12,8 +12,6 @@ class JPEGParser: FrameParser {
     private var buffer = Data()
     let maxBufferSize: Int
 
-    var i = 0
-
     enum Error: Swift.Error {
 
         /** Indicates that no JPEG data was found */
@@ -25,8 +23,6 @@ class JPEGParser: FrameParser {
     }
 
     func addBuffer(_ rawData: [UInt8]) throws {
-        print("i: \(i)")
-        i+=1
         buffer.append(Data(rawData))
 
         if buffer.count > maxBufferSize {
@@ -37,7 +33,6 @@ class JPEGParser: FrameParser {
 
     func parse() throws -> [UInt8]? {
 
-        print("i: \(i)")
         guard let soiRange = buffer.range(of: Data([0xFF, 0xD8])) else {
             buffer.removeAll()
             return nil
