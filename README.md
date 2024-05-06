@@ -7,7 +7,7 @@ The purpose of this library is to provide a simple client interface displaying a
 It currently expects TCP server endpoints to provide the video stream.
 
 ## 1. Conceptual Usage
-The snippet below demonstrates how the streaming client can be created and how an `AVSampleBufferDisplayLayer` is attached. For a full example, see the EXAMPLE_PROJECT.
+The snippet below demonstrates how the streaming client can be created and how an `AVSampleBufferDisplayLayer` is attached. For a full example, see the [Example Project](Example).
 ```swift
 import AVFoundation
 
@@ -46,7 +46,7 @@ There are plenty of ways how to provide a TCP server endpoint exposing your Rasp
 `$ raspivid -n -ih -t 0 -rot 0 -w 640 -h 480 -fps 15 -b 1000000 -o - | nc -lkv4 4444`
 
 ### 2.2 ESP32-CAM (or similar)
-To stream video over TCP from your ESP device, the `esp_camera.h` library, and a `WiFiClient` from the `WiFi.h` library can be used. A tested example can be found here: ESP_CAM_EXAMPLE.
+To stream video over TCP from your ESP device, the `esp_camera.h` library, and a `WiFiClient` from the `WiFi.h` library can be used. A tested example can be found here: [Arduino / ESP32-CAM TCP Server](https://github.com/TordWessman/ESP32-CAM-TCP-server).
 
 ## 3. Configuration
 At the time of writing, the number of configuration options is very limited...
