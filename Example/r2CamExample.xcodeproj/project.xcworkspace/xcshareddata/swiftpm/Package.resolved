@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "r2cam",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/TordWessman/r2Cam.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "8bb3e947bf4c7b94c8b2ff079c0d3857ca259220"
+      }
+    }
+  ],
+  "version" : 2
+}
