@@ -34,6 +34,8 @@ public class H264VideoConnection: VideoConnection, H264DecoderDelegate, NetworkC
         decoder.delegate = self
     }
 
+    //MARK: - H264DecoderDelegate
+
     func h264Decoder(emitted sampleBuffer: CMSampleBuffer) {
         delegate?.videoConnection(received: sampleBuffer)
     }
@@ -42,6 +44,8 @@ public class H264VideoConnection: VideoConnection, H264DecoderDelegate, NetworkC
         self.mediaSize = mediaSize
         delegate?.videoConnection(detected: mediaSize)
     }
+
+    //MARK: - NetworkClientDelegate
 
     public func networkClient(received data: [UInt8]) {
         operationQueue.addOperation { [weak self] in
@@ -54,6 +58,12 @@ public class H264VideoConnection: VideoConnection, H264DecoderDelegate, NetworkC
             }
         }
     }
+
+    public func networkClient(received error: Error) {
+        delegate?.videoConnection(error: error)
+    }
+
+    //MARK: - Public Methods
 
     public func start() throws {
         parser.running = true

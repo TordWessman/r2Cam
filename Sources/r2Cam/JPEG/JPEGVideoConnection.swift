@@ -20,7 +20,7 @@ public class JPEGVideoConnection: VideoConnection, NetworkClientDelegate, JPEGDe
     public weak var delegate: VideoConnectionDelegate?
     public weak var displayLayer: AVSampleBufferDisplayLayer?
 
-    enum Error: Swift.Error {
+    public enum Error: Swift.Error {
         case displayLayerIDeallocated
     }
 
@@ -34,28 +34,14 @@ public class JPEGVideoConnection: VideoConnection, NetworkClientDelegate, JPEGDe
         self.operationQueue.maxConcurrentOperationCount = 1
     }
 
-    private func equeueFrame(sampleBuffer: CMSampleBuffer) throws {
-        if let displayLayer, displayLayer.isReadyForMoreMediaData {
-            displayLayer.enqueue(sampleBuffer)
-            displayLayer.setNeedsDisplay()
-        }
-        if let delegate {
-            delegate.videoConnection(received: sampleBuffer)
-        }
-    }
-
-    private func decode(frame: [UInt8]) throws -> CMSampleBuffer? {
-        var buffer: CMSampleBuffer?
-        try DispatchQueue.main.sync {
-            buffer = try self.decoder.decode(frame: frame)
-        }
-        return buffer
-    }
+    //MARK: - JPEGDecoderDelegate
 
     func jpegDecoder(detected mediaSize: CGSize) {
         delegate?.videoConnection(detected: mediaSize)
         self.mediaSize = mediaSize
     }
+
+    //MARK: - NetworkClientDelegate
 
     public func networkClient(received data: [UInt8]) {
         operationQueue.addOperation { [weak self] in
@@ -73,11 +59,37 @@ public class JPEGVideoConnection: VideoConnection, NetworkClientDelegate, JPEGDe
         }
     }
 
+    public func networkClient(received error: Swift.Error) {
+        delegate?.videoConnection(error: error)
+    }
+
+    //MARK: - Public Methods
+
     public func start() throws {
         try client.start()
     }
 
     public func stop() {
         client.stop()
+    }
+
+    //MARK: - Private Methods
+
+    private func equeueFrame(sampleBuffer: CMSampleBuffer) throws {
+        if let displayLayer, displayLayer.isReadyForMoreMediaData {
+            displayLayer.enqueue(sampleBuffer)
+            displayLayer.setNeedsDisplay()
+        }
+        if let delegate {
+            delegate.videoConnection(received: sampleBuffer)
+        }
+    }
+
+    private func decode(frame: [UInt8]) throws -> CMSampleBuffer? {
+        var buffer: CMSampleBuffer?
+        try DispatchQueue.main.sync {
+            buffer = try self.decoder.decode(frame: frame)
+        }
+        return buffer
     }
 }
