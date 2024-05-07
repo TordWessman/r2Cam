@@ -10,22 +10,34 @@ import r2Cam
 
 struct ContentView: View {
 
-//    // For ESP-32 streaming
-//    //@ObservedObject var videoViewModel = VideoViewModel(.jpeg(host: "<ESP32-CAM Address>", port: 1234))
-//
-//    // For Raspberry Pi streaming
-    @ObservedObject var videoViewModel = VideoViewModel(.h264(host: "<Raspberry Pi Address>", port: 4444))
+    // For ESP-32 streaming
+    @ObservedObject var videoViewModelJPEG = VideoViewModel(.jpeg(host: "<ESP32-CAM Address>", port: 1234))
+
+    // For Raspberry Pi streaming
+    @ObservedObject var videoViewModelH264 = VideoViewModel(.h264(host: "<Raspberry Pi Address>", port: 4444))
 
     var body: some View {
         VStack {
-            if videoViewModel.isLoading {
-                ProgressView()
-            }
+            Text("ESP-32 Camera")
+                .bold()
             ZStack {
-                VideoView(viewModel: videoViewModel)
-                    .aspectRatio(contentMode: .fit)
-                Text(videoViewModel.errorMessage)
-                    .foregroundColor(.red)
+                VideoView(viewModel: videoViewModelJPEG)
+                    .frame(width: 320, height: 240)
+                if videoViewModelJPEG.isLoading {
+                    ProgressView()
+                }
+                Text(videoViewModelJPEG.errorMessage)
+            }
+            .padding(10)
+            Text("Raspberry Pi Camera")
+                .bold()
+            ZStack {
+                VideoView(viewModel: videoViewModelH264)
+                    .frame(width: 320, height: 240)
+                if videoViewModelH264.isLoading {
+                    ProgressView()
+                }
+                Text(videoViewModelH264.errorMessage)
             }
             Spacer()
             Button("Start Stream") {
