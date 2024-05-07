@@ -27,6 +27,9 @@ struct ContentView: View {
                     ProgressView()
                 }
                 Text(videoViewModelJPEG.errorMessage)
+            }.padding()
+            Button("Start ESP-32 Stream") {
+                videoViewModelJPEG.start()
             }
             .padding(10)
             Text("Raspberry Pi Camera")
@@ -38,11 +41,12 @@ struct ContentView: View {
                     ProgressView()
                 }
                 Text(videoViewModelH264.errorMessage)
+            }.padding()
+            Button("Start Raspberry Pi Stream") {
+                videoViewModelH264.start()
             }
             Spacer()
-            Button("Start Stream") {
-                videoViewModel.start()
-            }
+
         }
         .padding()
     }
