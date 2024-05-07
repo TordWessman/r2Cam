@@ -15,12 +15,32 @@ class TCPClient: NetworkClient {
     private let connection: NWConnection
     weak var delegate: NetworkClientDelegate?
 
-    init(host: String, port: UInt16, networkQueue: DispatchQueue = DispatchQueue.global()) {
+    private static func createParams() -> NWParameters {
+        let parames = NWParameters(tls: nil, tcp: Self.tcpOptions)
+        if let isOption = parames.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
+            isOption.version = .v4
+        }
+        parames.preferNoProxies = true
+        parames.expiredDNSBehavior = .allow
+        parames.multipathServiceType = .interactive
+        parames.serviceClass = .interactiveVideo
+        return parames
+    }
+
+    private static var tcpOptions: NWProtocolTCP.Options = {
+        let options = NWProtocolTCP.Options()
+        options.enableFastOpen = true
+        options.connectionTimeout = 10
+        return options
+    }()
+
+    init(host: String, port: UInt16, networkQueue: DispatchQueue? = nil) {
         let host = NWEndpoint.Host(host)
         let port = NWEndpoint.Port(integerLiteral: port)
-        self.connection = NWConnection(host: host, port: port, using: .tcp)
-        print("\(self.connection)")
-        self.networkQueue = networkQueue
+
+        self.networkQueue = networkQueue ?? DispatchQueue(label: "tcp_queue_\(host)", qos: .userInitiated)
+        self.connection = NWConnection(host: host, port: port, using: Self.createParams())
+
         connection.stateUpdateHandler = { [weak self] newState in
             guard let self else { return }
 
@@ -58,6 +78,7 @@ class TCPClient: NetworkClient {
     }
 
     private func receiveData() {
+
         connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] (data, _, isDone, error) in
             guard let self else { return }
 
@@ -66,7 +87,9 @@ class TCPClient: NetworkClient {
             } else if let error = error {
                 self.delegate?.networkClient(received: error)
             }
-            self.receiveData()
+            if error == nil {
+                self.receiveData()
+            }
         }
     }
 }
