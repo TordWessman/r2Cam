@@ -12,7 +12,10 @@ import Network
 class TCPClient: NetworkClient {
 
     private let networkQueue: DispatchQueue
-    private let connection: NWConnection
+    private var connection: NWConnection?
+    private let host: NWEndpoint.Host
+    private let port: NWEndpoint.Port
+
     weak var delegate: NetworkClientDelegate?
 
     private static func createParams() -> NWParameters {
@@ -34,14 +37,11 @@ class TCPClient: NetworkClient {
         return options
     }()
 
-    init(host: String, port: UInt16, networkQueue: DispatchQueue? = nil) {
-        let host = NWEndpoint.Host(host)
-        let port = NWEndpoint.Port(integerLiteral: port)
+    func createConnection() {
 
-        self.networkQueue = networkQueue ?? DispatchQueue(label: "tcp_queue_\(host)", qos: .userInitiated)
         self.connection = NWConnection(host: host, port: port, using: Self.createParams())
 
-        connection.stateUpdateHandler = { [weak self] newState in
+        connection?.stateUpdateHandler = { [weak self] newState in
             guard let self else { return }
 
             switch newState {
@@ -56,19 +56,31 @@ class TCPClient: NetworkClient {
             }
         }
     }
+    init(host: String, port: UInt16, networkQueue: DispatchQueue? = nil) {
+        self.host = NWEndpoint.Host(host)
+        self.port = NWEndpoint.Port(integerLiteral: port)
+
+        self.networkQueue = networkQueue ?? DispatchQueue(label: "tcp_queue_\(host)", qos: .userInitiated)
+        createConnection()
+    }
 
     func start() {
-        connection.start(queue: networkQueue)
+        if connection?.state != .setup  {
+            stop()
+            createConnection()
+        }
+        connection?.start(queue: networkQueue)
     }
 
     func stop() {
-        connection.cancel()
+        connection?.cancel()
+        connection = nil
     }
 
     func send(_ data: Data) async throws {
         return try await withCheckedThrowingContinuation { [weak self] continuation in
             guard let self else { return }
-            self.connection.send(content: data, completion: .contentProcessed { error in
+            self.connection?.send(content: data, completion: .contentProcessed { error in
                 if let error = error {
                     return continuation.resume(throwing: error)
                 }
@@ -79,7 +91,7 @@ class TCPClient: NetworkClient {
 
     private func receiveData() {
 
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] (data, _, isDone, error) in
+        connection?.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] (data, _, isDone, error) in
             guard let self else { return }
 
             if let data = data {
